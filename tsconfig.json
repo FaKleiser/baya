@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["reflect-metadata", "jest"],
+    "lib": ["es6"],
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "outDir": "dist/",
+    "baseUrl": ".",
+    "jsx": "react",
+    "paths": {
+      "*": [
+        "node_modules/*"
+      ]
+    }
+  },
+  "include": [
+    "src/*",
+    "src/blog/cli/*",
+    "src/mimacom/cli/*",
+    "types/jsx.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
