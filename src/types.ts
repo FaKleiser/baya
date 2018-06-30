@@ -4,6 +4,7 @@ export const TYPES = {
 
     PageRenderer: Symbol('PageRenderer'),
     ModuleRenderer: Symbol('ModuleRenderer'),
+    ModuleRendererDispatcher: Symbol('HtmlPageModuleRendererDispatcher'),
 
     PreRenderHook: Symbol('PreRenderHook'),
 };
