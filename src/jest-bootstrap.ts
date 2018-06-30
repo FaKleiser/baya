@@ -1,5 +1,5 @@
 // == DI imports first
 export {TYPES} from './types';
-import 'reflect-metadanta';
+import 'reflect-metadata';
 export {container} from './inversify.container';
-import './inversify.config';
+// import './inversify.config';
