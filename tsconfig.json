@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "alwaysStrict": true,
     "types": ["reflect-metadata", "jest"],
     "lib": ["es6"],
     "noImplicitAny": true,
@@ -19,10 +20,7 @@
     }
   },
   "include": [
-    "src/*",
-    "src/blog/cli/*",
-    "src/mimacom/cli/*",
-    "types/jsx.d.ts"
+    "src/*"
   ],
   "exclude": [
     "node_modules"

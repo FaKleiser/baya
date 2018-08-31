@@ -8,20 +8,27 @@ import {ValueObject} from './valueobject.interface';
  */
 export class Language implements ValueObject {
 
-    constructor(private _language: string) {
+    constructor(private _code: string) {
     }
 
     public equals(other: ValueObject): boolean {
         return (other instanceof Language)
-            && ((other as Language).language == this.language);
+            && ((other as Language).code == this.code);
     }
 
-    get language(): string {
-        return this._language;
+    get code(): string {
+        return this._code;
     }
 
     public toString(): string {
-        return this.language;
+        return this.code;
     }
 
+}
+
+/**
+ * Shorthand method to create a language.
+ */
+export function lang(language: string): Language {
+    return new Language(language);
 }
