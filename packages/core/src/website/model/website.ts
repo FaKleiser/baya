@@ -2,7 +2,6 @@ import {HtmlPage} from './page/htmlpage/html-page';
 import {Redirect} from './page/redirect/redirect';
 import {Sitemap} from './page/sitemap/sitemap';
 import {ChangeFreq} from './page/sitemap/change-freq.enum';
-import {ForemanConfig} from '../foreman.config';
 import {Asset} from './page/asset/asset';
 import {Page} from './page/page';
 import {RssFeed} from './page/rss-feed/rss-feed';
@@ -19,7 +18,7 @@ export class Website {
     private _baseUrl: string;
     private _hostName: string;
 
-    constructor({baseUrl, hostName}: ForemanConfig, public pathToUrlService: PathToUrlService) {
+    constructor({baseUrl, hostName}: any, public pathToUrlService: PathToUrlService) {
         this._baseUrl = baseUrl.replace(/([\/]+)$/, ''); // replace trailing /
         this._sitemap = new Sitemap(pathToUrlService);
         this._hostName = hostName;
@@ -46,7 +45,7 @@ export class Website {
         if (!to) {
             throw new Error(`Redirect from '${from}' should be non-empty!`);
         }
-        const redirect: Redirect = new Redirect(this, from, to);
+        const redirect: Redirect = new Redirect(from, to);
         this.throwIfExist(redirect);
         this._redirects.set(from.toString(), redirect);
         return this;

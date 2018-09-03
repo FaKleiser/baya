@@ -1,8 +1,6 @@
 import {Page} from './page';
 import {Website} from '../website';
 import {RelativePath} from '../../url/relative-path';
-import mock = jest.mock;
-import {PathToUrlService} from '../../url/path-to-url.service';
 
 describe('Page', () => {
 
@@ -15,20 +13,19 @@ describe('Page', () => {
 
         const p: Page = new class extends Page {
             constructor() {
-                super(website, path);
+                super(path);
             }
         };
 
         expect(p).toBeInstanceOf(Page);
         expect(p.url).toBe(path);
-        expect(p.website).toBe(website);
     });
 
     test('we cannot create a page without url', () => {
         expect(() => {
             const p: Page = new class extends Page {
                 constructor() {
-                    super(website, undefined);
+                    super(undefined);
                 }
             };
         }).toThrow();

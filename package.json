@@ -4,7 +4,7 @@
   "description": "Static site generator framework featuring React",
   "main": "index.js",
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",
     "clean": "rimraf packages/**/dist",
     "test": "lerna run test"

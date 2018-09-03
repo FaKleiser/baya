@@ -6,8 +6,8 @@ export class Redirect extends Page {
 
     private _to: string;
 
-    constructor(website: Website, from: RelativePath, to: string) {
-        super(website, from);
+    constructor(from: RelativePath, to: string) {
+        super(from);
         this._to = to;
     }
 
