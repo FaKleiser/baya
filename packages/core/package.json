@@ -47,10 +47,13 @@
   },
   "dependencies": {
     "@types/i18next": "^8.4.3",
+    "@types/markdown-it": "^0.0.5",
     "i18next": "^11.3.3",
     "inversify": "4.13.0",
     "inversify-binding-decorators": "4.0.0",
     "lodash": "4.17.10",
+    "markdown-it": "^8.4.2",
+    "markdown-it-for-inline": "^0.1.1",
     "md5": "^2.2.1",
     "react": "16.4.1",
     "react-dom": "16.4.1",
