@@ -7,4 +7,10 @@ export const TYPES = {
     ModuleRendererDispatcher: Symbol('HtmlPageModuleRendererDispatcher'),
 
     PreRenderHook: Symbol('PreRenderHook'),
+
+    /**
+     * fixme: remove
+     * @deprecated
+     */
+    TBD: Symbol('TBD'),
 };
