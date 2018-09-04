@@ -1,0 +1,32 @@
+{
+  "name": "@baya/loader-filesystem",
+  "version": "0.0.1",
+  "description": "File-system loader for baya",
+  "directories": {
+    "test": "jest"
+  },
+  "scripts": {
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch",
+    "build": "npm run ts:build",
+    "ts:build": "tsc",
+    "ts:watch": "tsc -w",
+    "ts:lint": "tslint -c tslint.json -p tsconfig.json",
+    "depcruise": "depcruise --validate .dependency-cruiser.json src"
+  },
+  "author": "Fabian Keller <contact@fabian-keller.de>",
+  "license": "MIT",
+  "dependencies": {
+    "@baya/core": "^0.0.1",
+    "glob": "^7.1.3",
+    "js-yaml": "^3.12.0",
+    "md5": "^2.2.1",
+    "rxjs": "6.3.1"
+  },
+  "devDependencies": {
+    "@types/glob": "^5.0.35",
+    "@types/js-yaml": "^3.11.2",
+    "@types/md5": "^2.1.32",
+    "typescript": "3.0.3"
+  }
+}

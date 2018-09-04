@@ -1,17 +1,6 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "alwaysStrict": true,
-    "types": ["reflect-metadata", "jest"],
-    "lib": ["es6"],
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "outDir": "dist/",
-    "jsx": "react",
     "baseUrl": "./packages",
     "paths": {
       "@baya/*": ["./*/src"]

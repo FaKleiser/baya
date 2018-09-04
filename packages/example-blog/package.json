@@ -1,0 +1,21 @@
+{
+  "name": "@baya/example-blog",
+  "version": "0.0.1",
+  "description": "Example blog implementation using baya",
+  "scripts": {
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch",
+    "build": "npm run ts:build",
+    "ts:build": "tsc",
+    "ts:watch": "tsc -w",
+    "ts:lint": "tslint -c tslint.json -p tsconfig.json"
+  },
+  "author": "Fabian Keller <contact@fabian-keller.de>",
+  "license": "MIT",
+  "dependencies": {
+    "@baya/core": "^0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "3.0.3"
+  }
+}
