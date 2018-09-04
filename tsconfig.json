@@ -14,7 +14,7 @@
     "jsx": "react",
     "baseUrl": "./packages",
     "paths": {
-      "@baya/": ["./*/src"]
+      "@baya/*": ["./*/src"]
     }
   },
   "exclude": [
