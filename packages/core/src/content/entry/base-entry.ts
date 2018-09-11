@@ -1,9 +1,9 @@
-import {Language} from '../../platform/valueobject/language';
+import {Language} from '../../platform/valueobject';
 
 /**
  * An entry represents an atomic piece of content.
  */
-export class Entry {
+export class BaseEntry {
 
     /** A unique identifier of the entry */
     private _id: string;

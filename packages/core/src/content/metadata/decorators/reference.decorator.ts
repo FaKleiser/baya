@@ -3,7 +3,7 @@ import {MetadataStorage} from '../metadata-storage';
 import {EntryMetadata} from '../entry-metadata';
 
 
-export function reference() {
+export function Reference() {
     return function (target: any, key: string) {
         const type = (Reflect as any).getMetadata('design:type', target, key);
         const referencedEntryMeta: EntryMetadata = container.get(MetadataStorage).metadataFor(type);

@@ -1,39 +1,36 @@
-import {Entry} from './entry';
-import {entry} from '../metadata/decorators/entry.decorator';
-import {EntryFactory} from './entry-factory';
+import {BaseEntry} from './base-entry';
+import {Entry, Property, Reference} from '../metadata/decorators';
+import {FramedEntryFactory} from './framed-entry-factory';
 import {container} from '../../jest-bootstrap';
-import {lang, Language} from '../../platform/valueobject/language';
-import {property} from '../metadata/decorators/property.decorator';
-import {reference} from '../metadata/decorators/reference.decorator';
-import {EntryFrame} from './frame/entry-frame';
-import {EntryFrameStore} from './frame/entry-frame-store.service';
+import {lang, Language} from '../../platform/valueobject';
+import {EntryFrame, EntryFrameStore} from './frame';
 
 describe('EntryFactory', () => {
 
-    @entry()
-    class AddressEntry extends Entry {
-        @property()
+    @Entry()
+    class AddressEntry extends BaseEntry {
+        @Property()
         public street: string;
-        @property()
+        @Property()
         public country: string;
     }
 
-    @entry()
-    class UserEntry extends Entry {
-        @property()
+    @Entry()
+    class UserEntry extends BaseEntry {
+        @Property()
         public name: string;
-        @reference()
+        @Reference()
         public address: AddressEntry;
-        @reference()
+        @Reference()
         public spouse?: UserEntry;
     }
 
     const EN: Language = lang('EN');
-    let entryFactory: EntryFactory;
+    let entryFactory: FramedEntryFactory;
     let entryFrameStore: EntryFrameStore;
 
     beforeAll(() => {
-        entryFactory = container.get(EntryFactory);
+        entryFactory = container.get(FramedEntryFactory);
         entryFrameStore = container.get(EntryFrameStore);
         entryFrameStore.clear();
     });

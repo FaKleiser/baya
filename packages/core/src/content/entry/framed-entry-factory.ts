@@ -1,25 +1,20 @@
 import {inject, injectable} from 'inversify';
-import {MetadataStorage} from '../metadata/metadata-storage';
-import {Entry} from './entry';
-import {Language} from '../../platform/valueobject/language';
-import {EntryMetadata} from '../metadata/entry-metadata';
-import {PropertyMetadata} from '../metadata/property-metadata';
-import {entry} from '../metadata/decorators/entry.decorator';
-import {EntryStore} from './entry-store.service';
-import {EntryFrameStore} from './frame/entry-frame-store.service';
-import {EntryFrame} from './frame/entry-frame';
+import {EntryMetadata, MetadataStorage} from '../metadata';
+import {BaseEntry} from './base-entry';
+import {Language} from '../../platform/valueobject';
+import {EntryFrame, EntryFrameStore} from './frame';
 
 @injectable()
-export class EntryFactory {
+export class FramedEntryFactory {
 
     constructor(@inject(MetadataStorage) private metadataStorage: MetadataStorage,
                 @inject(EntryFrameStore) private entryFrameStore: EntryFrameStore) {
     }
 
     /**
-     * Creates an instance of the {@link Entry} and populates all property fields.
+     * Creates an instance of the {@link BaseEntry} and populates all property fields.
      */
-    public factoryEntryFrame<T extends Entry>(entryConstructor: typeof Entry, id: string, language: Language, data: any): EntryFrame<T> {
+    public factoryEntryFrame<T extends BaseEntry>(entryConstructor: typeof BaseEntry, id: string, language: Language, data: any): EntryFrame<T> {
         if (!this.metadataStorage.hasMetadataFor(entryConstructor)) {
             throw new Error(`Cannot factory entry frame. There is no entry metadata stored for entry of type '${entryConstructor.name}'`);
         }
@@ -47,8 +42,8 @@ export class EntryFactory {
     /**
      * Takes an existing Entry frame and initializes all references.
      */
-    public factoryEntryReferences<T extends Entry>(frame: EntryFrame<T>, data: any): T {
-        const entryConstructor: typeof Entry = (<any> frame.entry).constructor;
+    public factoryEntryReferences<T extends BaseEntry>(frame: EntryFrame<T>, data: any): T {
+        const entryConstructor: typeof BaseEntry = (<any> frame.entry).constructor;
         if (!this.metadataStorage.hasMetadataFor(entryConstructor)) {
             throw new Error(`Cannot factory entry references. There is no entry metadata stored for entry of type '${entryConstructor.name}'`);
         }
@@ -64,7 +59,7 @@ export class EntryFactory {
             }
 
             // try to fetch the entry from the store and assign it
-            const referencedEntry: Entry = this.entryFrameStore.getOrDefault(referencedEntryId, entry.language).entry;
+            const referencedEntry: BaseEntry = this.entryFrameStore.getOrDefault(referencedEntryId, entry.language).entry;
             if (referencedEntry && !(referencedEntry.constructor == refMeta.referencedEntry.entryClass)) {
                 throw new Error(`Type collision! Entry '${entry.id}' expects referenced entry to be of type '${refMeta.referencedEntry.entryClass}', but found entry '${referencedEntryId}' to be of type '${(<any>referencedEntry).constructor.name}'!`);
             }

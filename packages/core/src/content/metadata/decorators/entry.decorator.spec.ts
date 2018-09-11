@@ -1,7 +1,7 @@
 import {container} from '../../../jest-bootstrap';
-import {entry} from './entry.decorator';
-import {lang, Language} from '../../../platform/valueobject/language';
-import {Entry} from '../../entry/entry';
+import {Entry} from './entry.decorator';
+import {lang, Language} from '../../../platform/valueobject';
+import {BaseEntry} from '../../entry';
 import {MetadataStorage} from '../metadata-storage';
 
 describe('@entry decorator', () => {
@@ -10,13 +10,13 @@ describe('@entry decorator', () => {
 
     const EN: Language = lang('en');
 
-    @entry()
-    class FooBarEntry extends Entry {
+    @Entry()
+    class FooBarEntry extends BaseEntry {
         public foo: string;
         public bar: string;
     }
 
-    class WithoutDecoratorEntry extends Entry {
+    class WithoutDecoratorEntry extends BaseEntry {
 
     }
 

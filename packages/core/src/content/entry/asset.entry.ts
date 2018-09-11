@@ -1,26 +1,25 @@
-import {Entry} from './entry';
+import {BaseEntry} from './base-entry';
 import {Observable} from 'rxjs';
-import {Language} from '../../platform/valueobject/language';
-import {entry} from '../metadata/decorators/entry.decorator';
-import {property} from '../metadata/decorators/property.decorator';
+import {Language} from '../../platform/valueobject';
+import {Entry, Property} from '../metadata/decorators';
 
 /**
  * Represents any file relevant for the content model.
  */
-@entry()
-export class AssetEntry extends Entry {
+@Entry()
+export class AssetEntry extends BaseEntry {
 
-    @property()
+    @Property()
     public content: Observable<string>;
-    @property()
+    @Property()
     public mimeType: string;
-    @property()
+    @Property()
     public size: number;
-    @property()
+    @Property()
     public filename: string;
-    @property()
+    @Property()
     public directory: string;
-    @property()
+    @Property()
     public title: string;
 
     constructor(id: string, language: Language) {

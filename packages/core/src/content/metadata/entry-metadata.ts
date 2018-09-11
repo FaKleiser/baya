@@ -1,16 +1,16 @@
-import {Entry} from '../entry/entry';
+import {BaseEntry} from '../entry';
 import {TypeFunction} from './type-function';
 import {PropertyMetadata} from './property-metadata';
 import {ReferenceMetadata} from './reference-metadata';
 
 export class EntryMetadata {
 
-    private _entryClass: typeof Entry;
+    private _entryClass: typeof BaseEntry;
 
     private _properties: Map<string, PropertyMetadata> = new Map();
     private _references: Map<string, ReferenceMetadata> = new Map();
 
-    constructor(entryClass: typeof Entry) {
+    constructor(entryClass: typeof BaseEntry) {
         this._entryClass = entryClass;
     }
 
@@ -36,7 +36,7 @@ export class EntryMetadata {
         return this.entryClass.name;
     }
 
-    get entryClass(): typeof Entry {
+    get entryClass(): typeof BaseEntry {
         return this._entryClass;
     }
 

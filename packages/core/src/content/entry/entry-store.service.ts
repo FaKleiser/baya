@@ -1,7 +1,7 @@
-import {Entry} from './entry';
+import {BaseEntry} from './base-entry';
 import {filter, flatMap} from 'lodash';
 import {injectable} from 'inversify';
-import {Language} from '../../platform/valueobject/language';
+import {Language} from '../../platform/valueobject';
 
 /**
  * The entry store holds a reference to ALL existing entries.
@@ -13,9 +13,9 @@ import {Language} from '../../platform/valueobject/language';
 @injectable()
 export class EntryStore {
 
-    private _entries: Map<string, Map<string, Entry>> = new Map();
+    private _entries: Map<string, Map<string, BaseEntry>> = new Map();
 
-    public store(entry: Entry): this {
+    public store(entry: BaseEntry): this {
         if (!this._entries.has(entry.id)) {
             this._entries.set(entry.id, new Map());
         }
@@ -23,7 +23,7 @@ export class EntryStore {
         return this;
     }
 
-    public getOrFail(id: string, language: Language): Entry {
+    public getOrFail(id: string, language: Language): BaseEntry {
         if (!this._entries.has(id)) {
             throw new Error(`Unknown entry ${id}`);
         }
@@ -33,7 +33,7 @@ export class EntryStore {
         return this._entries.get(id).get(language.code);
     }
 
-    public getOrDefault(id: string, language: Language, defaultValue: undefined | Entry = undefined): Entry {
+    public getOrDefault(id: string, language: Language, defaultValue: undefined | BaseEntry = undefined): BaseEntry {
         if (!this._entries.has(id)) {
             // no entry for the specified id => return default
             return defaultValue;
@@ -45,9 +45,9 @@ export class EntryStore {
         return this._entries.get(id).get(language.code);
     }
 
-    public getAlternates(entry: Entry): Entry[] {
+    public getAlternates(entry: BaseEntry): BaseEntry[] {
         if (this._entries.has(entry.id)) {
-            return Array.from(this._entries.get(entry.id).values()).filter((e: Entry) => e !== entry);
+            return Array.from(this._entries.get(entry.id).values()).filter((e: BaseEntry) => e !== entry);
         }
         return [];
     }
@@ -55,10 +55,10 @@ export class EntryStore {
     /**
      * Filters the entry list according to _predicate_
      *
-     * @return Entry[] The filtered list of entries
+     * @return BaseEntry[] The filtered list of entries
      */
-    public filter(predicate: (entry: Entry) => boolean, language?: Language): Entry[] {
-        const allEntries: Entry[] = flatMap(Array.from(this._entries.values()), (e: Map<string, Entry>) => {
+    public filter(predicate: (entry: BaseEntry) => boolean, language?: Language): BaseEntry[] {
+        const allEntries: BaseEntry[] = flatMap(Array.from(this._entries.values()), (e: Map<string, BaseEntry>) => {
             if (language) {
                 return [e.get(language.code)];
             }
