@@ -40,6 +40,10 @@ export class EntryMetadata {
         return this._entryClass;
     }
 
+    public hasProperties(): boolean {
+        return this._properties.size > 0;
+    }
+
     public hasProperty(propertyName: string): boolean {
         return this._properties.has(propertyName);
     }
@@ -50,6 +54,10 @@ export class EntryMetadata {
 
     public getProperties(): ReadonlyMap<string, PropertyMetadata> {
         return this._properties;
+    }
+
+    public hasReferences(): boolean {
+        return this._references.size > 0;
     }
 
     public hasReference(referenceName: string): boolean {

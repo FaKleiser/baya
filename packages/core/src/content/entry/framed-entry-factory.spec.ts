@@ -5,7 +5,9 @@ import {container} from '../../jest-bootstrap';
 import {lang, Language} from '../../platform/valueobject';
 import {EntryFrame, EntryFrameStore} from './frame';
 
-describe('EntryFactory', () => {
+describe('FramedEntryFactory', () => {
+
+    container;
 
     @Entry()
     class AddressEntry extends BaseEntry {
@@ -63,7 +65,7 @@ describe('EntryFactory', () => {
         const userFrame: EntryFrame<UserEntry> = entryFactory.factoryEntryFrame(UserEntry, 'engineer', EN, userData);
 
         expect(userFrame.entry.address).not.toBeInstanceOf(AddressEntry);
-        entryFactory.factoryEntryReferences(userFrame, userData);
+        entryFactory.factoryEntryReferences(userFrame, userData, entryFrameStore);
         expect(userFrame.entry.address).toBeInstanceOf(AddressEntry);
         expect(userFrame.entry.address).toBe(addressFrame.entry);
     });
@@ -75,7 +77,7 @@ describe('EntryFactory', () => {
             country: 'Some Tropical Island',
         };
         const addressFrame: EntryFrame<AddressEntry> = entryFactory.factoryEntryFrame(AddressEntry, 'tropicalAddress', EN, addressData);
-        entryFactory.factoryEntryReferences(addressFrame, addressData);
+        entryFactory.factoryEntryReferences(addressFrame, addressData, entryFrameStore);
 
         // assert that factoryEntryReferences() was a no-op
         expect(addressFrame.entry.id).toEqual('tropicalAddress');
@@ -92,7 +94,7 @@ describe('EntryFactory', () => {
             address: userId, // linking to wrong entry type
         };
         const userFrame: EntryFrame<AddressEntry> = entryFactory.factoryEntryFrame(UserEntry, userId, EN, userData);
-        expect(() => entryFactory.factoryEntryReferences(userFrame, userData)).toThrowError();
+        expect(() => entryFactory.factoryEntryReferences(userFrame, userData, entryFrameStore)).toThrowError();
     });
 
     test('Entry factory can create cyclic reference', () => {
@@ -103,7 +105,7 @@ describe('EntryFactory', () => {
             spouse: userId,
         };
         const userFrame: EntryFrame<UserEntry> = entryFactory.factoryEntryFrame(UserEntry, userId, EN, userData);
-        const john: UserEntry = entryFactory.factoryEntryReferences(userFrame, userData);
+        const john: UserEntry = entryFactory.factoryEntryReferences(userFrame, userData, entryFrameStore);
         expect(john.spouse).toBe(john);
     });
 });

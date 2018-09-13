@@ -7,15 +7,21 @@ import {EntryFrame, EntryFrameStore} from './frame';
 @injectable()
 export class FramedEntryFactory {
 
-    constructor(@inject(MetadataStorage) private metadataStorage: MetadataStorage,
-                @inject(EntryFrameStore) private entryFrameStore: EntryFrameStore) {
+    constructor(@inject(MetadataStorage) private metadataStorage: MetadataStorage) {
+    }
+
+    /**
+     * Returns true if the given {@link Entry} constructor can be produced by this factory.
+     */
+    public canFactory(entryConstructor: typeof BaseEntry) {
+        return this.metadataStorage.hasMetadataFor(entryConstructor);
     }
 
     /**
      * Creates an instance of the {@link BaseEntry} and populates all property fields.
      */
     public factoryEntryFrame<T extends BaseEntry>(entryConstructor: typeof BaseEntry, id: string, language: Language, data: any): EntryFrame<T> {
-        if (!this.metadataStorage.hasMetadataFor(entryConstructor)) {
+        if (!this.canFactory(entryConstructor)) {
             throw new Error(`Cannot factory entry frame. There is no entry metadata stored for entry of type '${entryConstructor.name}'`);
         }
         const metadata: EntryMetadata = this.metadataStorage.metadataFor(entryConstructor);
@@ -34,23 +40,22 @@ export class FramedEntryFactory {
             plainEntry[propName] = data[propName];
         }
 
-        const frame: EntryFrame<T> = new EntryFrame<T>(plainEntry);
-        this.entryFrameStore.store(frame);
-        return frame;
+        return new EntryFrame<T>(plainEntry, metadata, data);
     }
 
     /**
      * Takes an existing Entry frame and initializes all references.
+     *
+     * References are looked up in the given {@link EntryFrameStore}.
      */
-    public factoryEntryReferences<T extends BaseEntry>(frame: EntryFrame<T>, data: any): T {
-        const entryConstructor: typeof BaseEntry = (<any> frame.entry).constructor;
-        if (!this.metadataStorage.hasMetadataFor(entryConstructor)) {
-            throw new Error(`Cannot factory entry references. There is no entry metadata stored for entry of type '${entryConstructor.name}'`);
-        }
-        const metadata: EntryMetadata = this.metadataStorage.metadataFor(entryConstructor);
-
+    public factoryEntryReferences<T extends BaseEntry>(frame: EntryFrame<T>, data: any, entryFrameStore: EntryFrameStore): T {
+        // first check if there are references at all
         const entry: T = frame.entry;
-        for (const reference of metadata.getReferences()) {
+        if (!frame.metadata.hasReferences()) {
+            return entry;
+        }
+
+        for (const reference of frame.metadata.getReferences()) {
             // check if an entry is referenced
             const [refName, refMeta] = reference;
             const referencedEntryId: string = data[refName];
@@ -59,7 +64,7 @@ export class FramedEntryFactory {
             }
 
             // try to fetch the entry from the store and assign it
-            const referencedEntry: BaseEntry = this.entryFrameStore.getOrDefault(referencedEntryId, entry.language).entry;
+            const referencedEntry: BaseEntry = entryFrameStore.getOrDefault(referencedEntryId, entry.language).entry;
             if (referencedEntry && !(referencedEntry.constructor == refMeta.referencedEntry.entryClass)) {
                 throw new Error(`Type collision! Entry '${entry.id}' expects referenced entry to be of type '${refMeta.referencedEntry.entryClass}', but found entry '${referencedEntryId}' to be of type '${(<any>referencedEntry).constructor.name}'!`);
             }
