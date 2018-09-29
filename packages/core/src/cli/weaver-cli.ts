@@ -3,7 +3,7 @@ import {container} from '../inversify.container';
 import * as winston from 'winston';
 import {CliLoggerSetup} from './cli-logger-setup';
 import {CliStageOptions} from './cli-stage-options';
-import {Weaver} from '../workflow/weaver';
+import {Weaver} from '../workflow';
 
 
 /**

@@ -22,7 +22,7 @@
   "license": "",
   "jest": {
     "transform": {
-      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      ".(ts|tsx)": "<rootDir>/../../node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/test/.*|\\.(test|spec))\\.(ts|tsx)$",
     "moduleFileExtensions": [
@@ -46,8 +46,7 @@
     "@types/winston": "^2.4.4",
     "jest": "23.2.0",
     "ts-jest": "22.4.6",
-    "tslint": "5.10.0",
-    "typescript": "3.0.3"
+    "tslint": "5.10.0"
   },
   "dependencies": {
     "i18next": "^11.3.3",

@@ -2,10 +2,12 @@
   "name": "@baya/example-blog",
   "version": "0.0.1",
   "description": "Example blog implementation using baya",
+  "main": "dist/example-blog/cli/blog-cli.js",
   "scripts": {
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "build": "npm run ts:build",
+    "blog": "ts-node -r tsconfig-paths/register src/cli/blog-cli.ts",
     "ts:build": "tsc",
     "ts:watch": "tsc -w",
     "ts:lint": "tslint -c tslint.json -p tsconfig.json"
@@ -13,9 +15,10 @@
   "author": "Fabian Keller <contact@fabian-keller.de>",
   "license": "MIT",
   "dependencies": {
-    "@baya/core": "^0.0.1"
+    "@baya/core": "^0.0.1",
+    "ts-node": "^7.0.1"
   },
   "devDependencies": {
-    "typescript": "3.0.3"
+    "tsconfig-paths": "^3.6.0"
   }
 }
