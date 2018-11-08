@@ -1,41 +1,43 @@
 import {ContentLoader} from './content-loader.interface';
-import {BaseEntry, EntryFrame, EntryFrameStore, EntryStore, FramedEntryFactory} from '../entry';
-import {TransformationQueue} from '../transformation';
+import {BaseEntry, EntryFrame, EntryFrameStore, FramedEntryFactory} from '../entry';
 import {inject, injectable} from 'inversify';
 import * as winston from 'winston';
 import {Language} from '../../platform/valueobject';
+import {Observable} from 'rxjs';
+import {FinalizeEntry} from './finalize-entry';
 
 @injectable()
 export abstract class FramedEntryLoader implements ContentLoader {
 
-    /**
-     * Keeps track of all frames loaded by this loader.
-     */
-    private loadedFrames: EntryFrame<any>[] = [];
-
-    constructor(@inject(EntryStore) protected readonly store: EntryStore,
-                @inject(TransformationQueue) protected readonly queue: TransformationQueue,
-                @inject(EntryFrameStore) private entryFrameStore: EntryFrameStore,
+    constructor(@inject(EntryFrameStore) private entryFrameStore: EntryFrameStore,
                 @inject(FramedEntryFactory) private readonly entryFactory: FramedEntryFactory) {
     }
 
-    abstract load(entryStore: EntryStore, queue: TransformationQueue): Promise<void>;
+    abstract loadFrames(): Observable<EntryFrame<any>>;
 
     /**
-     * Enqueue an entry into the {@link TransformationQueue} and return it.
-     *
-     * This is useful in entry factories to enqueue entries before storing them
-     * in the {@link EntryStore}.
+     * Default implementation of the finalization step that:
+     * - uses the {@link FramedEntryFactory} to create references
+     * - enqueues data based on the {@link EntryMetadata}
      */
-    protected enqueue(entry: BaseEntry): BaseEntry {
-        this.queue.enqueue(entry);
-        return entry;
+    public finalizeFrame(frame: EntryFrame<any>,
+                         entryFrameStore: EntryFrameStore,
+                         finalize: FinalizeEntry): void {
+        winston.info(`Finalizing ${frame.entry.id}`);
+        if (frame.metadata.hasReferences()) {
+            winston.debug(`Creating references for entry type "${frame.metadata.entryName}" with id "${frame.entry.id}"`);
+            // TODO: expose rawData to callback before passing it to reference creation
+            this.entryFactory.factoryEntryReferences(frame, frame.rawData, this.entryFrameStore);
+        }
+        if (frame.metadata.transform) {
+            finalize.enqueue(frame.entry);
+        } else {
+            finalize.justStore(frame.entry);
+        }
     }
 
     /**
-     * Phase 1: Creates an {@link EntryFrame}
-     *
-     * If the entry has references, it is stored for later resolution of references.
+     * Ease creating an {@link EntryFrame}.
      */
     protected createEntry<T extends BaseEntry>(entryConstructor: typeof BaseEntry, id: string, language: Language, data: any): EntryFrame<any> {
         if (!this.entryFactory.canFactory(entryConstructor)) {
@@ -54,20 +56,4 @@ export abstract class FramedEntryLoader implements ContentLoader {
         return frame;
     }
 
-    /**
-     * Phase 2: initializes the references on all entries that need it.
-     *
-     * The entry is automatically put into the {@link EntryStore}.
-     */
-    protected initReferences(): void {
-        winston.info('Creating references');
-        for (const frame of this.loadedFrames) {
-            if (frame.metadata.hasReferences()) {
-                winston.debug(`Creating references for entry type "${frame.metadata.entryName}" with id "${frame.entry.id}"`);
-                // TODO: expose rawData to callback before passing it to reference creation
-                this.entryFactory.factoryEntryReferences(frame, frame.rawData, this.entryFrameStore);
-            }
-            this.store.store(frame.entry);
-        }
-    }
 }
