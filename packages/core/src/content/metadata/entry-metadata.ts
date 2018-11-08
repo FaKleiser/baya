@@ -2,10 +2,12 @@ import {BaseEntry} from '../entry';
 import {TypeFunction} from './type-function';
 import {PropertyMetadata} from './property-metadata';
 import {ReferenceMetadata} from './reference-metadata';
+import {EntryOptions} from './entry-options';
 
 export class EntryMetadata {
 
     private _entryClass: typeof BaseEntry;
+    private _transform: boolean = false;
 
     private _properties: Map<string, PropertyMetadata> = new Map();
     private _references: Map<string, ReferenceMetadata> = new Map();
@@ -32,8 +34,27 @@ export class EntryMetadata {
         return this;
     }
 
+    public setTransform(transform: boolean): this {
+        this._transform = transform;
+        return this;
+    }
+
+    public fromEntryOptions(options: EntryOptions): this {
+        if (!options) {
+            return this;
+        }
+        if (options.transform) {
+            this.setTransform(options.transform);
+        }
+        return this;
+    }
+
     get entryName(): string {
         return this.entryClass.name;
+    }
+
+    get transform(): boolean {
+        return this._transform;
     }
 
     get entryClass(): typeof BaseEntry {
