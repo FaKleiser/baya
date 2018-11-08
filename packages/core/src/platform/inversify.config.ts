@@ -5,7 +5,7 @@ import Context = interfaces.Context;
 
 export const PlatformModule: ContainerModule = new ContainerModule((bind: interfaces.Bind) => {
     bind(PLATFORM_TYPES.MarkdownProcessor).toDynamicValue((ctx: Context) => {
-        const plugins: MarkdownItPlugin[] = ctx.container.getAll(PLATFORM_TYPES.MarkdownItHelper) || [];
+        const plugins: MarkdownItPlugin[] = ctx.container.isBound(PLATFORM_TYPES.MarkdownItHelper) ? ctx.container.getAll(PLATFORM_TYPES.MarkdownItHelper) : [];
         return new MarkdownItProcessor(plugins, {
             html: true,
             highlight: (code: string, lang: string) => {

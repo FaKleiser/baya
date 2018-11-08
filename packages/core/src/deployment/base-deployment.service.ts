@@ -1,10 +1,10 @@
 import {Deployment} from './deployment.interface';
 import {RenderedWebsite} from '../website/renderer/website/rendered-website.model';
-import {Sitemap} from '../website/model/page/sitemap/sitemap';
-import {HtmlPage} from '../website/model/page/htmlpage/html-page';
-import {Redirect} from '../website/model/page/redirect/redirect';
-import {Asset} from '../website/model/page/asset/asset';
-import {RssFeed} from '../website/model/page/rss-feed/rss-feed';
+import {Sitemap} from '../website/model/page/sitemap';
+import {HtmlPage} from '../website/model/page/htmlpage';
+import {Redirect} from '../website/model/page/redirect';
+import {Asset} from '../website/model/page/asset';
+import {RssFeed} from '../website/model/page/rss-feed';
 
 export abstract class BaseDeployment implements Deployment {
 
