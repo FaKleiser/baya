@@ -31,3 +31,4 @@ contentful/.DS_Store/
 src/**/*.js
 *.iml
 .env
+packages/*/src/**/*.js

@@ -2,6 +2,9 @@
   "name": "@baya/loader-filesystem",
   "version": "0.0.1",
   "description": "File-system loader for baya",
+  "keywords": [
+    "baya"
+  ],
   "directories": {
     "test": "jest"
   },

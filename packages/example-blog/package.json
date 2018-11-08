@@ -16,6 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "@baya/core": "^0.0.1",
+    "@baya/deployment-filesystem": "^0.0.1",
+    "@baya/loader-filesystem": "^0.0.1",
     "ts-node": "^7.0.1"
   },
   "devDependencies": {
