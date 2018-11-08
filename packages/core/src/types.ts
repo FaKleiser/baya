@@ -3,6 +3,7 @@ export const TYPES = {
     Transformer: Symbol('Transformer'),
 
     PageRenderer: Symbol('PageRenderer'),
+    PageRendererDispatcher: Symbol('PageRendererDispatcher'),
     ModuleRenderer: Symbol('ModuleRenderer'),
     ModuleRendererDispatcher: Symbol('HtmlPageModuleRendererDispatcher'),
 

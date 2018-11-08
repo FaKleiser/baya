@@ -67,4 +67,8 @@ export class EntryStore {
         return filter(allEntries, predicate);
     }
 
+    public size(): number {
+        return this._entries.size;
+    }
+
 }

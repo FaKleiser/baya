@@ -1,5 +1,5 @@
-import {Container} from 'inversify';
-import {provide} from 'inversify-binding-decorators';
+import {Container, ContainerModule} from 'inversify';
+import {provide, buildProviderModule} from 'inversify-binding-decorators';
 import {TYPES} from './types';
 
 const container: Container = new Container();
@@ -19,23 +19,18 @@ const providePageRenderer: () => any = () => {
 };
 
 /**
- * Used to annotate and register {@link ModuleRenderer}s.
- */
-const provideModuleRenderer: () => any = () => {
-    return provide(TYPES.ModuleRenderer);
-};
-
-/**
  * Hook into the assemblyline workflow.
  */
 const providePreRenderHook: () => any = () => {
     return provide(TYPES.PreRenderHook);
 };
 
+const DecoratorModule: ContainerModule = buildProviderModule();
+
 export {
     container,
     provideTransformer,
     providePageRenderer,
-    provideModuleRenderer,
     providePreRenderHook,
+    DecoratorModule
 };

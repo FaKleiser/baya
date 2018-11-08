@@ -1,9 +1,8 @@
 import {SitemapEntry} from './sitemap-entry';
 import {Page} from '../page';
-import {HtmlPage} from '../htmlpage/html-page';
+import {HtmlPage} from '../htmlpage';
 import {ChangeFreq} from './change-freq.enum';
-import {RelativePath} from '../../../url/relative-path';
-import {PathToUrlService} from '../../../url/path-to-url.service';
+import {PathToUrlService, RelativePath} from '../../../url';
 
 export class Sitemap extends Page {
 

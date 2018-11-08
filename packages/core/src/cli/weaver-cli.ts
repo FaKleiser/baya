@@ -38,42 +38,12 @@ export class WeaverCli {
 
     protected async pipeline(baseUrl: string, stage: CliStageOptions) {
         try {
-            const startTime: number = Date.now();
-            let weaverTime: number, loadTime: number, renderTime: number, deployTime: number;
-
             // container.bind(TYPES.ForemanConfig).toConstantValue(stage.foremanConfig(baseUrl));
-            const weaver: Weaver = container.get(Weaver);
-            weaverTime = Date.now();
-
-            // load content
-            for (const loader of stage.loaders()) {
-                await weaver.loadFrom(loader);
-            }
-
-            // fixme: introduce lifecycle callbacks
-            // if (stage.onLoaded) {
-            //     await stage.onLoaded(weaver);
-            // }
-
-            // fixme: handle assets
-            loadTime = Date.now();
-
-            // render
-            weaver.render();
-            renderTime = Date.now();
-
-            // deploy
-            await weaver.deploy(stage.deployment());
-            deployTime = Date.now();
-
-            winston.info(Array(80).join('#'));
-            winston.info(`# Foreman set up took ${weaverTime - startTime} ms`);
-            winston.info(`# Data retrieval took ${loadTime - weaverTime} ms`);
-            winston.info(`# Rendering took ${renderTime - loadTime} ms`);
-            winston.info(`# Deployment took ${deployTime - renderTime} ms`);
-            winston.info(`# ${Array(25).join('-')}`);
-            winston.info(`# Complete run took ${deployTime - startTime} ms`);
-            winston.info(Array(80).join('#'));
+            await container.get(Weaver)
+                .withLoaders(stage.loaders())
+                .withDeployment(stage.deployment())
+                .run();
+            winston.info("Finished baya. Have a look at your shiny website!");
         } catch (e) {
             winston.error(`Critical error occucured. Exiting application. Error was:\n ${e.stack}`);
             process.exitCode = 1;

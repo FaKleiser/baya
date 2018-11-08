@@ -5,7 +5,7 @@ import {RelativePath} from '../../url/relative-path';
 describe('Page', () => {
 
     const baseUrl: string = 'baseUrl', hostName: string = 'hostName';
-    const website = new Website({baseUrl, hostName}, undefined);
+    const website = new Website(undefined);
 
 
     test('we can create a page with a url', () => {

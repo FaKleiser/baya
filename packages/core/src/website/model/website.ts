@@ -1,12 +1,11 @@
-import {HtmlPage} from './page/htmlpage/html-page';
+import {HtmlPage} from './page/htmlpage';
 import {Redirect} from './page/redirect/redirect';
 import {Sitemap} from './page/sitemap/sitemap';
 import {ChangeFreq} from './page/sitemap/change-freq.enum';
 import {Asset} from './page/asset/asset';
-import {Page} from './page/page';
+import {Page} from './page';
 import {RssFeed} from './page/rss-feed/rss-feed';
-import {RelativePath} from '../url/relative-path';
-import {PathToUrlService} from '../url/path-to-url.service';
+import {PathToUrlService, RelativePath} from '../url';
 import winston = require('winston');
 
 export class Website {
@@ -15,13 +14,9 @@ export class Website {
     private _redirects: Map<string, Redirect> = new Map();
     private _sitemap: Sitemap;
     private _assets: Map<string, Asset> = new Map();
-    private _baseUrl: string;
-    private _hostName: string;
 
-    constructor({baseUrl, hostName}: any, public pathToUrlService: PathToUrlService) {
-        this._baseUrl = baseUrl.replace(/([\/]+)$/, ''); // replace trailing /
+    constructor(public pathToUrlService: PathToUrlService) {
         this._sitemap = new Sitemap(pathToUrlService);
-        this._hostName = hostName;
     }
 
     public addPage(page: HtmlPage, lastmod: Date, changeFreq: ChangeFreq = ChangeFreq.MONTHLY, priority: number = 0.5): this {
@@ -76,14 +71,6 @@ export class Website {
 
     public get assets(): IterableIterator<Asset> {
         return this._assets.values();
-    }
-
-    public get baseUrl(): string {
-        return this._baseUrl;
-    }
-
-    public get hostName(): string {
-        return this._hostName;
     }
 
     private storePage(page: HtmlPage) {
