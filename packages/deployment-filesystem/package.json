@@ -1,0 +1,41 @@
+{
+  "name": "@baya/deployment-filesystem",
+  "version": "0.0.1",
+  "description": "File system deployment for baya",
+  "keywords": [
+    "baya"
+  ],
+  "directories": {
+    "test": "jest"
+  },
+  "scripts": {
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch",
+    "build": "npm run ts:build",
+    "ts:build": "tsc",
+    "ts:watch": "tsc -w",
+    "ts:lint": "tslint -c tslint.json -p tsconfig.json",
+    "depcruise": "depcruise --validate .dependency-cruiser.json src"
+  },
+  "author": "Fabian Keller <login@fabian-keller.de>",
+  "homepage": "https://github.com/FaKeller/baya#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FaKeller/baya.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FaKeller/baya/issues"
+  },
+  "dependencies": {
+    "@baya/core": "^0.0.1",
+    "mkdirp": "0.5.1"
+  },
+  "devDependencies": {
+    "@types/mkdirp": "0.3.29"
+  }
+}
