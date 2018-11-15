@@ -1,6 +1,6 @@
 import {defaults, filter} from 'lodash';
 import {FileInfo, FilesystemAccess, Markdown} from './filesystem-access';
-import {injectable} from 'inversify';
+import {inject, injectable} from 'inversify';
 import * as winston from 'winston';
 import * as md5 from 'md5';
 import {
@@ -16,6 +16,8 @@ import {
 } from '@baya/core';
 import {FileSystemLoaderOptions, MetadataLocation} from './config';
 import {EntryData} from './entry-data';
+import {Observable, Subject} from 'rxjs';
+import {EntryStructure, FileSystemStructure} from './definition';
 import path = require('path');
 
 const transliterate: any = require('transliteration/lib/node/transliterate').default;
@@ -37,18 +39,16 @@ const transliterate: any = require('transliteration/lib/node/transliterate').def
  * callbacks to customize any steps during the loading.
  */
 @injectable()
-export abstract class FileSystemLoader extends FramedEntryLoader {
+export class FileSystemLoader extends FramedEntryLoader {
 
     /** extracts organizational prefix and slug from a directory name */
     public static readonly DIRECTORY_SLUG_REGEX: RegExp = /(([a-z0-9-]+)_)?([a-z0-9-]+)$/;
 
-    protected readonly _fsa: FilesystemAccess;
-
     private defaultLoaderOptions: FileSystemLoaderOptions = {
         metadataLocation: MetadataLocation.ALL,
         failOnNoMetadata: true,
-        entryLanguage: null,
-        entryType: null,
+        extractLanguage: null,
+        extractType: null,
         onDirectoryPath: (directoryPath: string) => {
             const dirName: string = path.basename(directoryPath);
             const matches: RegExpExecArray = FileSystemLoader.DIRECTORY_SLUG_REGEX.exec(dirName);
@@ -71,19 +71,34 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
                 slug: dirName,
             };
         },
-        idFor: (metadata: EntryData): string => {
+        extractID: (metadata: EntryData): string => {
             return `filesystem:${metadata.directory}`;
         },
         hasTextContent: false,
         hasTitleImage: false,
     };
 
-    constructor(entryFrameStore: EntryFrameStore,
-                entryFactory: FramedEntryFactory,
-                fsa: FilesystemAccess) {
+    constructor(private readonly structure: FileSystemStructure,
+                private readonly fsa: FilesystemAccess,
+                @inject(EntryFrameStore) entryFrameStore: EntryFrameStore,
+                @inject(FramedEntryFactory) entryFactory: FramedEntryFactory) {
         super(entryFrameStore, entryFactory);
-        this._fsa = fsa;
     }
+
+    loadFrames(): Observable<EntryFrame<any>> {
+        const publisher = new Subject<EntryFrame<any>>();
+        this.structure.entryStructures
+            .map((entryStructure) => this.loadEntryStructure(entryStructure, publisher));
+        return publisher;
+    }
+
+    private loadEntryStructure(entryStructure: EntryStructure, publisher: Subject<EntryFrame<any>>): void {
+        this.fsa.glob(entryStructure.glob, async (file: string): Promise<void> => {
+            const entry: EntryFrame<any> = this.loadFromDirectory(path.dirname(file), entryStructure.options);
+            publisher.next(entry);
+        }).catch((err) => { publisher.error(err) });
+    }
+
 
     protected loadFromDirectory(directory: string, loaderOptions?: FileSystemLoaderOptions): EntryFrame<any> {
         const options: FileSystemLoaderOptions = defaults(loaderOptions || {}, this.defaultLoaderOptions);
@@ -100,12 +115,12 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
         }
 
         // 2. create id
-        const entryId: string = options.idFor(data);
+        const entryId: string = options.extractID(data);
         let entryLanguage: Language;
         if ('function' == typeof entryLanguage) {
-            entryLanguage = options.entryLanguage(data);
+            entryLanguage = (options.extractLanguage as (data: EntryData) => Language)(data);
         } else {
-            entryLanguage = <any> options.entryLanguage;
+            entryLanguage = <any> options.extractLanguage;
         }
 
         // 3. load assets
@@ -126,13 +141,14 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
 
         // 6. determine entry type
         let entryType: typeof BaseEntry;
-        if ('function' == typeof loaderOptions.entryType) {
-            entryType = loaderOptions.entryType(data);
+        if ('function' == typeof loaderOptions.extractType) {
+            entryType = (loaderOptions.extractType as (data: EntryData) => typeof BaseEntry)(data);
         } else {
-            entryType = loaderOptions.entryType;
+            entryType = loaderOptions.extractType;
         }
 
         // 7. create entry
+        winston.debug(`Creating entry with slug '${data.slug}' from ${directory}`);
         return this.createEntry(entryType, entryId, entryLanguage, data);
     }
 
@@ -145,11 +161,11 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
             throw new Error(`The given FileSystemLoaderOptions require to load assets with 'loadAssets: true', but no 'onAsset' callback is defined.`);
         }
         const assets: AssetEntry[] = [];
-        for (const file of this._fsa.list(directory)) {
+        for (const file of this.fsa.list(directory)) {
             const normalizedFilename: string = transliterate(path.basename(file)).replace(/[^a-z0-9-_.]+/ig, '-').replace(/[-]{2,}/ig, '-');
-            const info: FileInfo = this._fsa.fileInfo(file);
+            const info: FileInfo = this.fsa.fileInfo(file);
             const data: any = {
-                content: this._fsa.fileContents(file),
+                content: this.fsa.fileContents(file),
                 mimeType: info.mimeType,
                 size: info.size,
 
@@ -173,7 +189,7 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
         // 1. check slug file
         if (options.metadataLocation === MetadataLocation.ALL
             || options.metadataLocation === MetadataLocation.SLUG) {
-            const loadedMetadata: Optional<any> = this._fsa.loadYaml(directory, `${metadata.slug}.yml`);
+            const loadedMetadata: Optional<any> = this.fsa.loadYaml(directory, `${metadata.slug}.yml`);
             if (loadedMetadata.has()) {
                 return defaults(metadata, loadedMetadata.get());
             }
@@ -182,7 +198,7 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
         // 2. check meta.yml file
         if (options.metadataLocation === MetadataLocation.ALL
             || options.metadataLocation === MetadataLocation.META) {
-            const loadedMetadata: Optional<any> = this._fsa.loadYaml(directory, `meta.yml`);
+            const loadedMetadata: Optional<any> = this.fsa.loadYaml(directory, `meta.yml`);
             if (loadedMetadata.has()) {
                 return defaults(metadata, loadedMetadata.get());
             }
@@ -201,10 +217,10 @@ export abstract class FileSystemLoader extends FramedEntryLoader {
      */
     private loadContent(directory: string, data: EntryData): EntryData {
         const markdownFileName: string = `${data.slug}.md`;
-        const markdown: Optional<Markdown> = this._fsa.loadMarkdown(directory, markdownFileName);
+        const markdown: Optional<Markdown> = this.fsa.loadMarkdown(directory, markdownFileName);
         const content: string = markdown.getOrThrow(`Couldn't load markdown content for entry in ${directory}`) as string;
         if (!content.startsWith('# ')) {
-            throw new Error(`The main content file '${this._fsa.resolve(directory, markdownFileName)}' must start with a headline as follows: '# <HEADLINE>'`);
+            throw new Error(`The main content file '${this.fsa.resolve(directory, markdownFileName)}' must start with a headline as follows: '# <HEADLINE>'`);
         }
         const titleSplit: string[] = content.split('\n');
         return defaults({

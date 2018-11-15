@@ -23,25 +23,25 @@ export class FileSystemDeployment extends BaseDeployment {
     deployPage(page: HtmlPage, html: string): void {
         const filePath: string = this.toFilePath(page);
         fs.writeFileSync(filePath, html, {encoding: 'utf-8'});
-        winston.info(`Published page ${page.url} to file ${filePath}`);
+        winston.info(`[deployment] Published page ${page.url} to file ${filePath}`);
     }
 
     deployRss(page: RssFeed, xml: string): void {
         const filePath: string = this.toFilePath(page, 'xml');
         fs.writeFileSync(filePath, xml, {encoding: 'utf-8'});
-        winston.info(`Published rss ${page.url} to file ${filePath}`);
+        winston.info(`[deployment] Published rss ${page.url} to file ${filePath}`);
     }
 
     deploySitemap(sitemap: Sitemap, xml: string): void {
         const filePath: string = this.deployTo.replace(/\/+$/, '') + `/sitemap.xml`;
         fs.writeFileSync(filePath, xml, {encoding: 'utf-8'});
-        winston.info(`Published sitemap to file ${filePath}`);
+        winston.info(`[deployment] Published sitemap to file ${filePath}`);
     }
 
     deployRedirect(redirect: Redirect): void {
         const filePath: string = this.toFilePath(redirect);
         fs.writeFileSync(filePath, `Redirect to: ${redirect.to}`, {encoding: 'utf-8'});
-        winston.info(`Published redirect ${redirect.url} to ${filePath}`);
+        winston.info(`[deployment] Published redirect ${redirect.url} to ${filePath}`);
     }
 
     deployAsset(asset: Asset): void {
@@ -49,7 +49,7 @@ export class FileSystemDeployment extends BaseDeployment {
         if (!this.isAssetFilePresent(filePath) || this.isAssetExpired(filePath)) {
             asset.content.subscribe((loadedContent: string) => {
                 fs.writeFileSync(filePath, loadedContent, 'binary');
-                winston.info(`Published asset ${asset.url} to ${filePath}`);
+                winston.info(`[deployment] Published asset ${asset.url} to ${filePath}`);
             });
         }
     }
@@ -87,7 +87,7 @@ export class FileSystemDeployment extends BaseDeployment {
         const assetStat: fs.Stats = fs.statSync(filePath);
         const nowMs: number = new Date().getTime();
         if (nowMs - assetStat.mtime.getTime() > expiredAfterMs) {
-            winston.silly(`Asset expired: ${filePath}`);
+            winston.silly(`[deployment] Asset expired: ${filePath}`);
             return true;
         }
         return false;

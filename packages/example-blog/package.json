@@ -7,7 +7,7 @@
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "build": "npm run ts:build",
-    "blog": "ts-node -r tsconfig-paths/register src/cli/blog-cli.ts",
+    "blog": "ts-node -r tsconfig-paths/register src/cli/blog-cli.ts -vv",
     "ts:build": "tsc",
     "ts:watch": "tsc -w",
     "ts:lint": "tslint -c tslint.json -p tsconfig.json"

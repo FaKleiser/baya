@@ -8,13 +8,14 @@ import {
     WebsiteModule,
     WorkflowModule
 } from '@baya/core';
+import {LoaderFilesystemModule} from '@baya/loader-filesystem';
 
 import {BlogModule} from '../inversify.config';
-import {BlogLoader} from '../content/storage/blog.loader';
+import {BlogLoaderProvider} from '../content/storage/blog.loader';
 import {FileSystemDeployment} from '@baya/deployment-filesystem';
 import path = require('path');
 
-container.load(ContentModule, PlatformModule, WebsiteModule, DecoratorModule, BlogModule, WorkflowModule);
+container.load(ContentModule, PlatformModule, WebsiteModule, DecoratorModule, BlogModule, WorkflowModule, LoaderFilesystemModule);
 
 const CLI_VERISON: string = '0.0.1';
 
@@ -24,7 +25,7 @@ cli.stage({
     name: 'local',
     description: 'Deploy to the local file system',
     loaders: () => [
-        container.get(BlogLoader)
+        container.get(BlogLoaderProvider).provideLoader()
     ],
     deployment: () => {
         return new FileSystemDeployment({folder: path.resolve('./preview')});

@@ -1,49 +1,47 @@
-import {EntryData, FilesystemAccess, FileSystemLoader, MetadataLocation} from '@baya/loader-filesystem';
-import {EntryFrame, EntryFrameStore, EntryStore, FramedEntryFactory, Language, TransformationQueue} from '@baya/core';
-import {inject, injectable} from 'inversify';
+import {
+    EntryData,
+    FilesystemAccess,
+    FileSystemLoader,
+    FileSystemStructure,
+    MetadataLocation
+} from '@baya/loader-filesystem';
+import {
+    ContentLoader,
+    EntryFrame,
+    EntryFrameStore,
+    EntryStore,
+    FramedEntryFactory,
+    Language,
+    TransformationQueue
+} from '@baya/core';
+import {inject, injectable, interfaces} from 'inversify';
 import {TagEntry} from '../entry/tag/tag.entry';
-import {Observable, of} from 'rxjs';
-import * as winston from 'winston';
+import {BlogPostEntry} from '../entry/blog-post/blog-post.entry';
 
 const path = require('path');
 
 @injectable()
-export class BlogLoader extends FileSystemLoader {
+export class BlogLoaderProvider {
 
 
-    constructor(@inject(EntryFrameStore) entryFrameStore: EntryFrameStore,
-                @inject(FramedEntryFactory) entryFactory: FramedEntryFactory,
-                @inject(FilesystemAccess) fsa: FilesystemAccess) {
-        super(entryFrameStore, entryFactory, fsa);
+    constructor(@inject(FileSystemLoader) private loaderFactory: interfaces.Factory<FileSystemLoader>,
+                @inject(FilesystemAccess) private fsa: FilesystemAccess) {
     }
 
-    public loadFrames(): Observable<EntryFrame<any>> {
-        return of(
-            this.createEntry(TagEntry, 'tag1', new Language('EN'), {
-                slug: 'slug-tag1',
-                title: 'title-tag1',
-            }),
-            this.createEntry(TagEntry, 'tag2', new Language('EN'), {
-                slug: 'slug-tag2',
-                title: 'title-tag2',
-            })
-        );
-    }
-
-    private async loadTags(): Promise<void> {
-        return this._fsa.glob('tags/**/*.yml', async (file: string): Promise<void> => {
-            this.loadFromDirectory(path.dirname(file), {
-                hasTextContent: false,
-                failOnNoMetadata: true,
-                metadataLocation: MetadataLocation.SLUG,
-                entryLanguage: (data: EntryData) => new Language('EN'),
-                entryType: (data: EntryData) => TagEntry,
-            });
-        });
-        /*
-        new FSLCreator()
-            .match('tags/*.yml')
-            .
-         */
+    public provideLoader(): ContentLoader {
+        // describe file system
+        const structure: FileSystemStructure = new FileSystemStructure();
+        structure.match('tags/**/*.yml')
+            .failOnNoMetadata()
+            .metadataLocation(MetadataLocation.SLUG)
+            .extractLanguage(new Language('EN'))
+            .extractType((data: EntryData) => TagEntry);
+        structure.match('posts/*/meta.yml')
+            .failOnNoMetadata()
+            .hasTextContent()
+            .hasTitleImage()
+            .extractLanguage(new Language('EN'))
+            .extractType((data: EntryData) => BlogPostEntry);
+        return this.loaderFactory.apply(this.loaderFactory, [structure, this.fsa]);
     }
 }

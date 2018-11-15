@@ -40,6 +40,9 @@ export abstract class FramedEntryLoader implements ContentLoader {
      * Ease creating an {@link EntryFrame}.
      */
     protected createEntry<T extends BaseEntry>(entryConstructor: typeof BaseEntry, id: string, language: Language, data: any): EntryFrame<any> {
+        if (!entryConstructor) {
+            throw new Error(`Empty entry constructor passed to FramedEntryLoader.createEntry() for entry with id '${id}'`);
+        }
         if (!this.entryFactory.canFactory(entryConstructor)) {
             winston.error(`Cannot factory entry of type ${entryConstructor.name}. Skipping for now. Maybe you forgot to define entry metadata?`);
             return;
@@ -51,7 +54,7 @@ export abstract class FramedEntryLoader implements ContentLoader {
             return;
         }
 
-        winston.debug(`Created entry of type "${entryConstructor.name}" with id "${frame.entry.id}" for language "${frame.entry.languageAsLocaleString}"`);
+        winston.debug(`Created entry of type "${entryConstructor.name}" with id "${frame.entry.id}" for language "${frame.entry.language}"`);
         this.entryFrameStore.store(frame);
         return frame;
     }

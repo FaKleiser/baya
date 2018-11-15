@@ -64,7 +64,8 @@ export class FramedEntryFactory {
             }
 
             // try to fetch the entry from the store and assign it
-            const referencedEntry: BaseEntry = entryFrameStore.getOrDefault(referencedEntryId, entry.language).entry;
+            const referencedFrame: EntryFrame<any> = entryFrameStore.getOrDefault(referencedEntryId, entry.language);
+            const referencedEntry: BaseEntry = referencedFrame ? referencedFrame.entry : undefined;
             if (referencedEntry && !(referencedEntry.constructor == refMeta.referencedEntry.entryClass)) {
                 throw new Error(`Type collision! Entry '${entry.id}' expects referenced entry to be of type '${refMeta.referencedEntry.entryClass}', but found entry '${referencedEntryId}' to be of type '${(<any>referencedEntry).constructor.name}'!`);
             }

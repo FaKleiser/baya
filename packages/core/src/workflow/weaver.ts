@@ -88,7 +88,9 @@ export class Weaver {
         // load
         winston.info("[weaver] starting to load entries");
         await this.combinedLoader.load().toPromise()
-            .catch((err) => winston.error(err))
+            .catch((err) => {
+                throw new Error(err);
+            })
             .then(() => winston.info(`[weaver] finished loading ${this.store.size()} entries!`));
         // transform & render
         winston.info("[weaver] starting to transform and render");

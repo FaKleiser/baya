@@ -2,10 +2,9 @@ import {Page} from '../page';
 import {MetaData} from './meta-data';
 import {OpenGraphData} from './open-graph-data';
 import {JsonLD} from './json-ld';
-import {HtmlPageOptions} from './html-options.interface';
-import {RelativePath} from '../../../url/relative-path';
-import {Language} from '../../../../platform/valueobject/language';
-import {HtmlPageModule} from './modules/html-page-module';
+import {RelativePath} from '../../../url';
+import {Language} from '../../../../platform/valueobject';
+import * as React from 'react';
 
 
 export class HtmlPage extends Page {
@@ -15,16 +14,14 @@ export class HtmlPage extends Page {
     private _meta: MetaData;
     private _openGraphData: OpenGraphData;
     private _jsonLD: JsonLD;
-    private _modules: HtmlPageModule[] = [];
+    private _content: React.ReactElement<any>[] = [];
     private _language: Language;
     private _alternates: Map<Language, RelativePath>;
 
-    constructor(options: HtmlPageOptions) {
-        super(options.url);
-        this._language = options.language;
-        this._title = options.title;
-        this._alternates = options.alternates;
+    constructor(url: RelativePath) {
+        super(url);
     }
+
 
     public withMetaData(meta: MetaData): this {
         this._meta = meta;
@@ -41,19 +38,21 @@ export class HtmlPage extends Page {
         return this;
     }
 
-    public appendModule(module: HtmlPageModule): this {
-        if (!module) {
-            throw new TypeError('The module that should be appended to the website is undefined!');
+    public append(node: React.ReactElement<any>): this {
+        if (!node) {
+            throw new TypeError('The node that should be appended to the website is undefined!');
         }
-        if (module.moduleName()) {
-            throw new Error('Module name is empty. Are you sure the given module implements the interface "WebsiteModule"?');
-        }
-        this._modules.push(module);
+        this._content.push(node);
         return this;
     }
 
     public get language(): Language {
         return this._language;
+    }
+
+
+    public set title(value: string) {
+        this._title = value;
     }
 
     public get title(): string {
@@ -76,8 +75,8 @@ export class HtmlPage extends Page {
         return this._jsonLD;
     }
 
-    public get modules(): HtmlPageModule[] {
-        return this._modules;
+    public get content(): React.ReactElement<any>[] {
+        return this._content;
     }
 
     public get alternates(): Map<Language, RelativePath> {
