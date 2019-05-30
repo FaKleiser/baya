@@ -62,6 +62,6 @@
     "reflect-metadata": "0.1.12",
     "rxjs": "6.3.1",
     "strftime": "^0.10.0",
-    "winston": "3.0.0"
+    "winston": "3.2.1"
   }
 }
