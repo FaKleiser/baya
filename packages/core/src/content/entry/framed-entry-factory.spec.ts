@@ -31,7 +31,7 @@ describe('FramedEntryFactory', () => {
     let entryFactory: FramedEntryFactory;
     let entryFrameStore: EntryFrameStore;
 
-    beforeAll(() => {
+    beforeEach(() => {
         entryFactory = container.get(FramedEntryFactory);
         entryFrameStore = container.get(EntryFrameStore);
         entryFrameStore.clear();
@@ -56,6 +56,7 @@ describe('FramedEntryFactory', () => {
             country: 'Some Tropical Island',
         };
         const addressFrame: EntryFrame<AddressEntry> = entryFactory.factoryEntryFrame(AddressEntry, 'tropicalAddress', EN, addressData);
+        entryFrameStore.store(addressFrame);
 
         // create user frame
         const userData: any = {
@@ -94,6 +95,7 @@ describe('FramedEntryFactory', () => {
             address: userId, // linking to wrong entry type
         };
         const userFrame: EntryFrame<AddressEntry> = entryFactory.factoryEntryFrame(UserEntry, userId, EN, userData);
+        entryFrameStore.store(userFrame);
         expect(() => entryFactory.factoryEntryReferences(userFrame, userData, entryFrameStore)).toThrowError();
     });
 
@@ -105,6 +107,7 @@ describe('FramedEntryFactory', () => {
             spouse: userId,
         };
         const userFrame: EntryFrame<UserEntry> = entryFactory.factoryEntryFrame(UserEntry, userId, EN, userData);
+        entryFrameStore.store(userFrame);
         const john: UserEntry = entryFactory.factoryEntryReferences(userFrame, userData, entryFrameStore);
         expect(john.spouse).toBe(john);
     });
