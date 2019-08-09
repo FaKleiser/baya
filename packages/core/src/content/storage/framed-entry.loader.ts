@@ -23,6 +23,9 @@ export abstract class FramedEntryLoader implements ContentLoader {
     public finalizeFrame(frame: EntryFrame<any>,
                          entryFrameStore: EntryFrameStore,
                          finalize: FinalizeEntry): void {
+        if (!(frame instanceof EntryFrame)) {
+            throw new Error(`Expected EntryFrame but got something else: '${frame}'!`);
+        }
         winston.info(`Finalizing ${frame.entry.id}`);
         if (frame.metadata.hasReferences()) {
             winston.debug(`Creating references for entry type "${frame.metadata.entryName}" with id "${frame.entry.id}"`);

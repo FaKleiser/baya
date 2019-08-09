@@ -87,13 +87,20 @@ export class FileSystemLoader extends FramedEntryLoader {
 
     loadFrames(): Observable<EntryFrame<any>> {
         const publisher = new Subject<EntryFrame<any>>();
-        this.structure.entryStructures
+        const allStructuresLoaded: Promise<void>[] = this.structure.entryStructures
             .map((entryStructure) => this.loadEntryStructure(entryStructure, publisher));
+        Promise.all(allStructuresLoaded)
+            .then(() => {
+                winston.debug(`[file-system-loader] Finished loading.`);
+                publisher.complete();
+            })
+            .catch((err) => publisher.error(err));
         return publisher;
     }
 
-    private loadEntryStructure(entryStructure: EntryStructure, publisher: Subject<EntryFrame<any>>): void {
-        this.fsa.glob(entryStructure.glob, async (file: string): Promise<void> => {
+    private async loadEntryStructure(entryStructure: EntryStructure, publisher: Subject<EntryFrame<any>>): Promise<void> {
+        return this.fsa.glob(entryStructure.glob, async (file: string): Promise<void> => {
+            winston.debug(`[file-system-loader] Trying to load entry from '${file}'`);
             const entry: EntryFrame<any> = this.loadFromDirectory(path.dirname(file), entryStructure.options);
             publisher.next(entry);
         }).catch((err) => { publisher.error(err) });
