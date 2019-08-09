@@ -2,7 +2,8 @@ import {injectable, unmanaged} from 'inversify';
 import {GlobSync, hasMagic, IGlobBase} from 'glob';
 import * as winston from 'winston';
 import * as yaml from 'js-yaml';
-import {Observable} from 'rxjs';
+import {Observable, of, pipe} from 'rxjs';
+import {tap} from 'rxjs/operators';
 import {Optional} from '@baya/core';
 import path = require('path');
 import fs = require('fs');
@@ -40,6 +41,8 @@ export class FilesystemAccess {
 
     /**
      * Provide a glob pattern and the method will call the loadCallback for each match.
+     *
+     * @deprecated use {@link FilesystemAccess#rxglob} instead
      */
     public async glob(pattern: string, loadCallback: (fileName: string) => Promise<void>): Promise<void> {
         const candidates: IGlobBase = new GlobSync(pattern, {
@@ -53,6 +56,18 @@ export class FilesystemAccess {
             });
         })).then(() => {
         });
+    }
+
+    /**
+     * Provide a glob pattern and the method will call the loadCallback for each match.
+     */
+    public rxglob(pattern: string): Observable<string> {
+        const candidates: IGlobBase = new GlobSync(pattern, {
+            cwd: this._rootDir,
+        });
+        return of(...candidates.found).pipe(
+            tap((match) => winston.debug(`About to load ${match}`))
+        );
     }
 
     /**

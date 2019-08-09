@@ -55,7 +55,7 @@ export class WeaverCli {
             try {
                 await command(...args);
             } catch (e) {
-                winston.error('Assemblyline encountered an error:');
+                winston.error('baya encountered an error:');
                 if (e.stack) {
                     winston.error(e.stack);
                 } else {
@@ -79,7 +79,7 @@ export class WeaverCli {
         } else {
             CliLoggerSetup.setup();
         }
-        winston.info('====   assemblyline   ====');
+        winston.info('====   baya   ====');
 
         // execute command
         if (!process.argv.slice(2).length) {

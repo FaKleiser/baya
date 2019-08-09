@@ -1,22 +1,25 @@
 import {ContentLoader} from './content-loader.interface';
 import {EntryFrame, EntryFrameStore} from '../entry';
-import {Observable, Subject, zip} from 'rxjs';
+import {Observable, Subject, from, forkJoin, throwError} from 'rxjs';
+import {tap, finalize, catchError} from 'rxjs/operators';
 import {FinalizeEntry} from './finalize-entry';
 import {inject, injectable} from 'inversify';
 import * as winston from 'winston';
 
-interface LoadedFrames {
-    loader: ContentLoader,
-    frames: EntryFrame<any>[]
-}
-
+/**
+ * The combined loader ensures that content from multiple sources can be loaded properly.
+ *
+ * This loader is necessary to support references across multiple loaders. The combined loader works by:
+ * 1. first loading all {@link EntryFrame}s from all loaders,
+ * 2. and then finalizing the frames (i.e. establishing the references)
+ */
 @injectable()
 export class CombinedLoader {
 
     private _loaders: ContentLoader[] = [];
 
 
-    constructor(@inject(FinalizeEntry) private finalize: FinalizeEntry,
+    constructor(@inject(FinalizeEntry) private finalizeEntry: FinalizeEntry,
                 @inject(EntryFrameStore) private entryFrameStore: EntryFrameStore) {
     }
 
@@ -31,77 +34,51 @@ export class CombinedLoader {
     }
 
     public load(): Observable<void> {
-        const publisher = new Subject<void>();
-        this.loadit()
-            .then(() => {
-                publisher.next();
-                publisher.complete();
-            })
-            .catch((err) => publisher.error(err));
-        return publisher;
-    }
+        const loadingComplete: Subject<void> = new Subject();
 
-    private async loadit(): Promise<void> {
+        // initialize our frames by loader map - this will be used to finalize all frames once all loaders finished loading the frames
+        const framesByLoader: Map<ContentLoader, EntryFrame<any>[]> = new Map();
+        this._loaders.forEach(loader => framesByLoader.set(loader, []));
+
+        // now load all frames of all loaders
         winston.info(`[combined-loader] Starting to combine ${this._loaders.length} loader(s).`);
-        // first load frames
-        const loadedFrames: LoadedFrames[] = [];
-        for (const loader of this._loaders) {
-            loadedFrames.push(await this.doLoadFrames2(loader));
-        }
+        const loaderObservables: Observable<EntryFrame<any>>[] = this._loaders.map((loader) => {
+            return loader.loadFrames().pipe(
+                // first: store it in the store
+                tap((frame: EntryFrame<any>) => this.entryFrameStore.store(frame)),
+                tap((frame: EntryFrame<any>) => framesByLoader.get(loader).push(frame))
+            )
+        });
+        forkJoin(...loaderObservables).pipe(
+            finalize(() => winston.info(`Loaded a total of '${Array.from(framesByLoader.values()).reduce((sum, frames) => sum + frames.length, 0)}' frames from '${this._loaders.length}' loaders`)),
+            catchError((err: any) => {
+                loadingComplete.error(err);
+                return throwError(err);
+            })
+        ).subscribe(() => {
 
-        // then finalize
-        winston.info(`[combined-loader] Starting to finalize '${this._loaders.length}' loader(s) for '${loadedFrames.length}' frames.`);
-        for (const loaded of loadedFrames) {
-            for (const frame of loaded.frames) {
-                loaded.loader.finalizeFrame(frame, this.entryFrameStore, this.finalize);
-            }
-        }
-    }
-
-    private async doLoadFrames2(loader: ContentLoader): Promise<LoadedFrames> {
-        return zip(loader.loadFrames())
-            .toPromise()
-            .then((loadedFrames: EntryFrame<any>[]) => {
-                if (!loadedFrames) {
-                    loadedFrames = [];
-                }
-                winston.info(`[combined-loader] Loaded ${loadedFrames.length} frames from ${loader.constructor.name}`);
-                winston.info(JSON.stringify(loadedFrames[0]));
-                return {
-                    loader: loader,
-                    frames: loadedFrames
-                }
+            // once we have all frames, run the finalize step to complete all references
+            const finalizeObservables: Observable<EntryFrame<any>>[] = this._loaders.map((loader) => {
+                return from(framesByLoader.get(loader)).pipe(
+                    // finalize cross references
+                    tap((frame: EntryFrame<any>) => loader.finalizeFrame(frame, this.entryFrameStore, this.finalizeEntry)),
+                    finalize(() => `Finalized all entries for loader '${loader.constructor.name}'`)
+                )
             });
+            forkJoin(...finalizeObservables).pipe(
+                finalize(() => `Entry loading finished`),
+                catchError((err: any) => {
+                    loadingComplete.error(err);
+                    return throwError(err);
+                })
+            ).subscribe(() => {
+                loadingComplete.next();
+                loadingComplete.complete();
+            });
+
+        });
+
+        return loadingComplete;
     }
-
-    // private doLoadFrames(loader: ContentLoader): Observable<LoadedFrames> {
-    //     combineAll(loader.loadFrames());
-    //     return loader.loadFrames().pipe(
-    //         // map((loadedFrame: EntryFrame<any>): LoadedFrames => {
-    //         //     winston.info(`[combined-loader] Loaded frame ${loadedFrame.entry.id}`);
-    //         //     return {
-    //         //         loader: loader,
-    //         //         frame: loadedFrame
-    //         //     }
-    //         // }),
-    //         combineAll((loadedFrames: EntryFrame<any>[]): LoadedFrames => {
-    //             return {
-    //                 loader: loader,
-    //                 frames: loadedFrames
-    //             }
-    //         }),
-    //         tap((loadedFrames: LoadedFrames): void => {
-    //             winston.info(`[combined-loader] Loaded ${loadedFrames.frame.entry.id}`);
-    //         })
-    //     );
-    // }
-
-    // private doFinalizeFrames(loadedFrames: LoadedFrames): Observable<void> {
-    //     return of(loadedFrames.frame).pipe(
-    //         map((frame: EntryFrame<any>) => {
-    //             loadedFrames.loader.finalizeFrame(frame, this.entryFrameStore, this.finalize);
-    //         })
-    //     );
-    // }
 
 }

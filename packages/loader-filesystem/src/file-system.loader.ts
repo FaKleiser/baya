@@ -6,7 +6,6 @@ import * as md5 from 'md5';
 import {
     AssetEntry,
     BaseEntry,
-    Entry,
     EntryFrame,
     EntryFrameStore,
     FramedEntryFactory,
@@ -16,11 +15,11 @@ import {
 } from '@baya/core';
 import {FileSystemLoaderOptions, MetadataLocation} from './config';
 import {EntryData} from './entry-data';
-import {Observable, Subject} from 'rxjs';
+import {Observable, merge} from 'rxjs';
+import {map, finalize} from 'rxjs/operators';
 import {EntryStructure, FileSystemStructure} from './definition';
 import path = require('path');
-
-const transliterate: any = require('transliteration/lib/node/transliterate').default;
+import { transliterate } from 'transliteration';
 
 /**
  * The FileSystemLoader helps to load entries stored in a file system by
@@ -86,24 +85,28 @@ export class FileSystemLoader extends FramedEntryLoader {
     }
 
     loadFrames(): Observable<EntryFrame<any>> {
-        const publisher = new Subject<EntryFrame<any>>();
-        const allStructuresLoaded: Promise<void>[] = this.structure.entryStructures
-            .map((entryStructure) => this.loadEntryStructure(entryStructure, publisher));
-        Promise.all(allStructuresLoaded)
-            .then(() => {
-                winston.debug(`[file-system-loader] Finished loading.`);
-                publisher.complete();
-            })
-            .catch((err) => publisher.error(err));
-        return publisher;
+        // load each structure in a separate observable
+        const structureLoaders: Observable<EntryFrame<any>>[] = this.structure.entryStructures
+            .map((entryStructure) => this.loadEntryStructure(entryStructure));
+
+        // flatmap them all into a single EntryFrame stream
+        return merge(...structureLoaders).pipe(
+            finalize(() => winston.debug(`[file-system-loader] Finished loading.`))
+        );
     }
 
-    private async loadEntryStructure(entryStructure: EntryStructure, publisher: Subject<EntryFrame<any>>): Promise<void> {
-        return this.fsa.glob(entryStructure.glob, async (file: string): Promise<void> => {
-            winston.debug(`[file-system-loader] Trying to load entry from '${file}'`);
-            const entry: EntryFrame<any> = this.loadFromDirectory(path.dirname(file), entryStructure.options);
-            publisher.next(entry);
-        }).catch((err) => { publisher.error(err) });
+    /**
+     * Loads all {@link EntryFrame}s of a single content structure (e.g. all blog posts, or all tags)
+     */
+    private loadEntryStructure(entryStructure: EntryStructure): Observable<EntryFrame<any>> {
+        return this.fsa
+            .rxglob(entryStructure.glob)
+            .pipe(
+                map((file) => {
+                    winston.debug(`[file-system-loader] Trying to load entry from '${file}'`);
+                    return this.loadFromDirectory(path.dirname(file), entryStructure.options);
+                })
+        );
     }
 
 
