@@ -17,7 +17,7 @@
   "devDependencies": {
     "@types/node": "10.14.15",
     "lerna": "3.16.4",
-    "rimraf": "2.6.3",
+    "rimraf": "3.0.2",
     "typescript": "3.3.3"
   }
 }
